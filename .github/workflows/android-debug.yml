@@ -31,6 +31,10 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # setup-android 的默认 packages 含 'tools'，而 Google 已下架该包，
+          # 保留默认值会让这一步以 "Failed to find package 'tools'" 直接失败。
+          packages: platform-tools
 
       - name: Install Android platform
         run: sdkmanager "platforms;android-37" "build-tools;37.0.0"
