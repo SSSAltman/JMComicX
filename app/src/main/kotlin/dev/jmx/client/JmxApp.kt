@@ -114,6 +114,8 @@ internal fun JmxApp(
     val accountDataRepository = remember(homeRepository, accountRepository) {
         AccountDataRepository(homeRepository.core, homeRepository, accountRepository)
     }
+    // 榜单与每周必看不依赖登录态：复用首页那一份 core 与图片线路就够了，不牵扯会话恢复。
+    val rankingRepository = remember(homeRepository) { RankingRepository(homeRepository) }
     val settingsRepository = remember(homeRepository, applicationContext) {
         AppSettingsRepository(applicationContext, homeRepository.core, homeRepository)
     }
@@ -716,6 +718,8 @@ internal fun JmxApp(
                                             onFavorites = { openProtectedAccountPage(JmxRoute.FAVORITES) },
                                             onHistory = { openProtectedAccountPage(JmxRoute.HISTORY) },
                                             onDaily = { openProtectedAccountPage(JmxRoute.DAILY) },
+                                            onRanking = { navigateAccount(JmxRoute.RANKING) },
+                                            onWeekly = { navigateAccount(JmxRoute.WEEKLY) },
                                             onAbout = { navigateAccount(JmxRoute.ABOUT) },
                                             onDownloads = { navigateAccount(JmxRoute.DOWNLOADS) },
                                             // 只数收藏里的更新：仅在书架、没被收藏的漫画不该让收藏冒红点。
@@ -884,8 +888,50 @@ internal fun JmxApp(
                                     onFavorites = { openProtectedAccountPage(JmxRoute.FAVORITES) },
                                     onHistory = { openProtectedAccountPage(JmxRoute.HISTORY) },
                                     onDaily = { openProtectedAccountPage(JmxRoute.DAILY) },
+                                    onRanking = { navigateAccount(JmxRoute.RANKING) },
+                                    onWeekly = { navigateAccount(JmxRoute.WEEKLY) },
                                     onAbout = { navigateAccount(JmxRoute.ABOUT) },
                                             onDownloads = { navigateAccount(JmxRoute.DOWNLOADS) },
+                                )
+                                // 榜单与每周必看走 account 路由栈，详情转场因此按 ACCOUNT 记来源：
+                                // origin 只用来挑出"被抬起的那一格封面"，与登录态无关。
+                                JmxRoute.RANKING -> RankingScreen(
+                                    innerPadding = innerPadding,
+                                    repository = rankingRepository,
+                                    liftedAlbumId = detailRequest
+                                        ?.takeIf {
+                                            it.origin == AlbumDetailOrigin.ACCOUNT && it.sourceBounds != null
+                                        }
+                                        ?.album
+                                        ?.id,
+                                    onAlbumSelected = { album, sourceBounds ->
+                                        if (detailRequest == null) {
+                                            detailRequest = AlbumDetailTransitionRequest(
+                                                album = album,
+                                                sourceBounds = sourceBounds,
+                                                origin = AlbumDetailOrigin.ACCOUNT,
+                                            )
+                                        }
+                                    },
+                                )
+                                JmxRoute.WEEKLY -> WeeklyScreen(
+                                    innerPadding = innerPadding,
+                                    repository = rankingRepository,
+                                    liftedAlbumId = detailRequest
+                                        ?.takeIf {
+                                            it.origin == AlbumDetailOrigin.ACCOUNT && it.sourceBounds != null
+                                        }
+                                        ?.album
+                                        ?.id,
+                                    onAlbumSelected = { album, sourceBounds ->
+                                        if (detailRequest == null) {
+                                            detailRequest = AlbumDetailTransitionRequest(
+                                                album = album,
+                                                sourceBounds = sourceBounds,
+                                                origin = AlbumDetailOrigin.ACCOUNT,
+                                            )
+                                        }
+                                    },
                                 )
                                 JmxRoute.THIRD_PARTY -> ThirdPartyListScreen(innerPadding)
                                 JmxRoute.SETTINGS -> SettingsScreen(

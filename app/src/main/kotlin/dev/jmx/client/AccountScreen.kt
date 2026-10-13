@@ -53,8 +53,10 @@ import top.yukonga.miuix.kmp.icon.extended.Contacts
 import top.yukonga.miuix.kmp.icon.extended.Download
 import top.yukonga.miuix.kmp.icon.extended.Favorites
 import top.yukonga.miuix.kmp.icon.extended.Info
+import top.yukonga.miuix.kmp.icon.extended.ListView
 import top.yukonga.miuix.kmp.icon.extended.Recent
 import top.yukonga.miuix.kmp.icon.extended.Show
+import top.yukonga.miuix.kmp.icon.extended.Sort
 import top.yukonga.miuix.kmp.icon.extended.Tasks
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -77,6 +79,8 @@ internal fun AccountScreen(
     onFavorites: () -> Unit,
     onHistory: () -> Unit,
     onDaily: () -> Unit,
+    onRanking: () -> Unit,
+    onWeekly: () -> Unit,
     onAbout: () -> Unit,
     onDownloads: () -> Unit,
     favoriteUpdateCount: Int = 0,
@@ -215,6 +219,16 @@ internal fun AccountScreen(
                         title = "每日签到",
                         startAction = { AccountPreferenceIcon(MiuixIcons.Tasks, "每日签到") },
                         onClick = onDaily,
+                    )
+                    ArrowPreference(
+                        title = "榜单",
+                        startAction = { AccountPreferenceIcon(MiuixIcons.Sort, "榜单") },
+                        onClick = onRanking,
+                    )
+                    ArrowPreference(
+                        title = "每周必看",
+                        startAction = { AccountPreferenceIcon(MiuixIcons.ListView, "每周必看") },
+                        onClick = onWeekly,
                     )
                 }
             }

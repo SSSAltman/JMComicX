@@ -328,6 +328,44 @@ class ApiExtendedFacadeTest {
         assertEquals("/categories/filter?page=1&order=&c=doujin&o=mv_w", server.takeRequest().path)
     }
 
+    /**
+     * 榜单屏的两种极值形态：`c=0` 表示不限分类，`t=a` 时 `o` 不带时间后缀（总榜）。
+     * 这两个取值都是客户端直接拼进请求里的，URL 形状变了页面就会静默拿到错的榜单。
+     */
+    @Test
+    fun categoriesFilterSendsUnrestrictedRankingWindow() {
+        val api = LibraryApi(createClient())
+        server.enqueue(encryptedResponse("""{"total":2,"list":[{"id":"1","name":"a"},{"id":"2","name":"b"}]}"""))
+
+        val result = kotlinx.coroutines.runBlocking {
+            api.categoriesFilter(
+                CategoryFilter(
+                    page = 3,
+                    time = JmxMagicConstants.TIME_ALL,
+                    category = JmxMagicConstants.CATEGORY_ALL,
+                    order = JmxMagicConstants.ORDER_BY_VIEW
+                )
+            )
+        }
+
+        assertTrue(result is JmxResult.Success)
+        assertEquals(2, (result as JmxResult.Success).value.content.size)
+        assertEquals("/categories/filter?page=3&order=&c=0&o=mv", server.takeRequest().path)
+    }
+
+    /** 每周必看的筛选参数名：`id` 是期次、`type` 是类型，两者都由 /week 返回后原样回传。 */
+    @Test
+    fun weekFilterUsesWeekIdAndType() {
+        val api = LibraryApi(createClient())
+        server.enqueue(encryptedResponse("""{"total":1,"list":[{"id":"9","name":"weekly"}]}"""))
+
+        val result = kotlinx.coroutines.runBlocking { api.weekFilter(page = 2, categoryId = "7", typeId = "3") }
+
+        assertTrue(result is JmxResult.Success)
+        assertEquals("weekly", (result as JmxResult.Success).value.content.single().name)
+        assertEquals("/week/filter?page=2&id=7&type=3", server.takeRequest().path)
+    }
+
     private fun createClient(maxAttempts: Int = 1): JmxApiClient {
         val tokenProvider = ApiTokenProvider(
             clock = object : ApiClock {
