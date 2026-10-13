@@ -127,12 +127,12 @@ internal fun WeeklyScreen(
             )
             else -> {
                 RankingChipRow(
-                    chips = loadedFilters.categories.toWeeklyChips(prefix = "栏目"),
+                    chips = loadedFilters.categories.toCategoryChips(),
                     selectedId = selectedCategoryId.orEmpty(),
                     onSelect = { categoryId = it },
                 )
                 RankingChipRow(
-                    chips = loadedFilters.types.toWeeklyChips(prefix = "类型"),
+                    chips = loadedFilters.types.toTypeChips(),
                     selectedId = selectedTypeId.orEmpty(),
                     onSelect = { typeId = it },
                 )
@@ -163,18 +163,18 @@ internal fun WeeklyScreen(
 }
 
 /** 标题缺失时退回可辨识的编号，避免胶囊变成空白。 */
-private fun List<WeekCategory>.toWeeklyChips(prefix: String): List<RankingChip> = map { category ->
+private fun List<WeekCategory>.toCategoryChips(): List<RankingChip> = map { category ->
     RankingChip(
         id = category.id,
         label = category.title?.decodeHtml()?.trim().orEmpty()
-            .ifBlank { "$prefix ${category.id}" },
+            .ifBlank { "栏目 ${category.id}" },
     )
 }
 
-private fun List<WeekType>.toWeeklyChips(prefix: String): List<RankingChip> = map { type ->
+private fun List<WeekType>.toTypeChips(): List<RankingChip> = map { type ->
     RankingChip(
         id = type.id,
         label = type.title?.decodeHtml()?.trim().orEmpty()
-            .ifBlank { "$prefix ${type.id}" },
+            .ifBlank { "类型 ${type.id}" },
     )
 }

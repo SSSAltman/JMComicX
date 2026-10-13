@@ -37,25 +37,9 @@ jobs:
           packages: platform-tools
 
       - name: Install Android platform
-        run: |
-          set +e
-          echo "== 镜像已装的 platforms / build-tools =="
-          ls -1 "$ANDROID_HOME/platforms" 2>/dev/null
-          ls -1 "$ANDROID_HOME/build-tools" 2>/dev/null
-          echo "== 远端可用的 35~39 候选包名 =="
-          sdkmanager --list 2>/dev/null | grep -oE "(platforms;android|build-tools);3[5-9][0-9.]*" | sort -u
-          echo "== 逐个试装（app/build.gradle.kts 用的是 release(37){minorApiLevel=0}，包名可能带小版本）=="
-          for pkg in "platforms;android-37" "platforms;android-37.0" "platforms;android-37.0.0"; do
-            echo "-- try $pkg"
-            if sdkmanager --install "$pkg" "build-tools;37.0.0"; then
-              echo "INSTALLED with $pkg"
-              break
-            fi
-          done
-          echo "== 预览通道兜底 =="
-          sdkmanager --channel=1 --install "platforms;android-37" "build-tools;37.0.0" || true
-          echo "== 最终落地状态 =="
-          ls -1 "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools"
+        # AGP 9 的 `release(37) { minorApiLevel = 0 }` 对应带小版本的包名；
+        # `platforms;android-37` 在 SDK 仓库里并不存在。
+        run: sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
 
       - name: Make Gradle executable
         run: chmod +x gradlew
